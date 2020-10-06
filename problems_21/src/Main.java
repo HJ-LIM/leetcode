@@ -1,7 +1,6 @@
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 
 public class Main {
    public static void main(String[] args) {
@@ -13,22 +12,22 @@ class Solution {
    public int solution(int[][] board, int[] moves) {
       int answer = 0;
 
-      Map<Integer, ArrayList<Integer>> map = generateMap(board);
+      Map<Integer, Stack<Integer>> temp_map = generateMap(board);
 
-      List<Integer> basket = new ArrayList<>();
+      Stack<Integer> basket = new Stack<>();
+//      List<Integer> basket = new ArrayList<>();
 
       for (int i = 0; i < moves.length; i++) {
-         ArrayList<Integer> integers = map.get(moves[i]);
-         if(integers.size() == 0 ) continue;
-         Integer doll = integers.get(integers.size() - 1);
-         integers.remove(integers.size() - 1);
+         Stack<Integer> temp = temp_map.get(moves[i]);
+         if(temp.size() == 0 ) continue;
+         Integer doll = temp.peek();
+         temp.pop();
 
-
-         if(basket.size() != 0 && basket.get(basket.size()-1) == doll){
-            basket.remove(basket.size()-1);
+         if(basket.size() != 0 && basket.peek() == doll){
+            basket.pop();
             answer += 2;
          }else{
-            basket.add(doll);
+            basket.push(doll);
          }
 
       }
@@ -36,25 +35,24 @@ class Solution {
       return answer;
    }
 
-   private Map<Integer, ArrayList<Integer>> generateMap(int[][] board) {
-      HashMap<Integer, ArrayList<Integer>> map = new HashMap<>();
+   private Map<Integer, Stack<Integer>> generateMap(int[][] board) {
+      HashMap<Integer, Stack<Integer>> map = new HashMap<>();
 
       for (int i = board.length-1; i >= 0; i--) {
          int[] floor = board[i];
 
          for (int j = 0; j < floor.length; j++) {
-            ArrayList<Integer> arr;
+            Stack<Integer> stack;
 
             if(map.containsKey(j + 1)){
-               arr = map.get(j + 1);
+               stack = map.get(j + 1);
             }else{
-               arr = new ArrayList<>();
+               stack = new Stack<>();
             }
 
             if(floor[j] == 0 ) continue;
-            
-            arr.add(floor[j]);
-            map.put(j+1 , arr);
+            stack.push(floor[j]);
+            map.put(j+1 , stack);
          }
       }
 
