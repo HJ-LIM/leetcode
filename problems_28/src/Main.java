@@ -5,14 +5,15 @@ import java.util.List;
 
 public class Main {
    public static void main(String[] args) {
-      System.out.println(new Solution().solution(new String[]{"2016-09-15 01:00:04.001 2.0s", "2016-09-15 01:00:07.000 2s"}));
+//      System.out.println(new Solution().solution(new String[]{"2016-09-15 23:59:59.999 0.001s"}));
+//      System.out.println(new Solution().solution(new String[]{"2016-09-15 01:00:04.001 2.0s", "2016-09-15 01:00:07.000 2s"}));
 //      System.out.println(new Solution().solution(new String[]{"2016-09-15 01:00:04.002 2.0s", "2016-09-15 01:00:07.000 2s"}));
-//      System.out.println(new Solution().solution(new String[]{"2016-09-15 20:59:57.421 0.351s"
-//          , "2016-09-15 20:59:58.233 1.181s", "2016-09-15 20:59:58.299 0.8s"
-//          , "2016-09-15 20:59:58.688 1.041s", "2016-09-15 20:59:59.591 1.412s"
-//          , "2016-09-15 21:00:00.464 1.466s", "2016-09-15 21:00:00.741 1.581s"
-//          , "2016-09-15 21:00:00.748 2.31s", "2016-09-15 21:00:00.966 0.381s"
-//          , "2016-09-15 21:00:02.066 2.62s"}));
+      System.out.println(new Solution().solution(new String[]{"2016-09-15 20:59:57.421 0.351s"
+          , "2016-09-15 20:59:58.233 1.181s", "2016-09-15 20:59:58.299 0.8s"
+          , "2016-09-15 20:59:58.688 1.041s", "2016-09-15 20:59:59.591 1.412s"
+          , "2016-09-15 21:00:00.464 1.466s", "2016-09-15 21:00:00.741 1.581s"
+          , "2016-09-15 21:00:00.748 2.31s", "2016-09-15 21:00:00.966 0.381s"
+          , "2016-09-15 21:00:02.066 2.62s"}));
    }
 }
 
@@ -27,45 +28,28 @@ class Solution {
          Interval interval = new Interval(time);
          intervals.add(interval);
       }
+      for (Interval target_transaction : intervals) {
+//         System.out.println(target_transaction.toString());
+         target_transaction.getFrom().getTimeInMillis();
 
+         int inner_cnt = 0;
+         for (Interval transaction : intervals) {
+            if(target_transaction.equals(transaction)){
+               inner_cnt++;
+               continue;
+            }
+            boolean inner = target_transaction.isInner(transaction);
+            if(inner) inner_cnt++;
+         }
 
-      for (Interval interval : intervals) {
-         interval.getFrom().getTimeInMillis();
-//         long from = interval.getFrom().getTimeInMillis();
-//         long to = interval.getTo().getTimeInMillis();
-//
-//         int start_count = 0;
-//         int end_count = 0;
-//         for (Interval other : intervals) {
-//            if(from <= other.getTo().getTimeInMillis() && from+999 >= other.getFrom().getTimeInMillis()){
-//               start_count++;
-//            }
-//
-//            if(to <= other.getTo().getTimeInMillis() && to+999 >= other.getFrom().getTimeInMillis()){
-//               end_count++;
-//            }
-//         }
-
-//         answer = start_count > answer ? start_count : answer;
-//         answer = end_count > answer ? end_count : answer;
+         answer = inner_cnt > answer ? inner_cnt : answer;
       }
-
-
-
       return answer;
-
    }
 }
 
 
 class CalendarUtils{
-//   // yy-MM-dd HH:mm:ss.SSS
-//   public static Calendar newCalendar(String time) {
-//      Calendar calendar = Calendar.getInstance();
-//      return calendar;
-//   }
-
-   // yyyy-mm-dd
    // hh:mm:ss.SSS
    public static Calendar newCalendar(String yyyymmdd, String hhmmssSSS) {
       Calendar cal = Calendar.getInstance();
@@ -102,6 +86,7 @@ class CalendarUtils{
 class Interval{
    private Calendar from;
    private Calendar to;
+   private long took;
    public Interval(String time) {
       String[] split = time.split(" ");
       String yyyymmdd = split[0];
@@ -110,22 +95,44 @@ class Interval{
 
       to = CalendarUtils.newCalendar(yyyymmdd, hhmmssSSS);
 
-      long sec = (long) (Float.parseFloat(duration.replace("s", "")) * 1000);
+      took = (long) (Float.parseFloat(duration.replace("s", "")) * 1000);
 
-      long l = to.getTimeInMillis() - sec + 1;
+      long l = to.getTimeInMillis() - took+1;
       from = CalendarUtils.newCalendar(l);
    }
 
    public Calendar getFrom() {
       return from;
    }
-
    public Calendar getTo() {
       return to;
+   }
+
+   public long getTook() {
+      return took;
    }
 
    @Override
    public String toString(){
       return CalendarUtils.toString(from) + " ~ " + CalendarUtils.toString(to);
+   }
+
+   public boolean isInner(Interval transaction) {
+      Calendar _from = (Calendar) this.from.clone();
+      Calendar _to = (Calendar) this.to.clone();
+
+      _from.add(Calendar.SECOND , 1);
+      _to.add(Calendar.SECOND , 1);
+      if(this.from.getTimeInMillis() <= transaction.to.getTimeInMillis() &&
+              ((_from.getTimeInMillis() <= transaction.from.getTimeInMillis() && transaction.from.getTimeInMillis() < _to.getTimeInMillis())
+              || (_from.getTimeInMillis() <= transaction.to.getTimeInMillis() && transaction.to.getTimeInMillis() < _to.getTimeInMillis()))){
+         return true;
+      }else if(this.getTook() < 1000 &&
+              (this.from.getTimeInMillis() <= transaction.from.getTimeInMillis() && transaction.from.getTimeInMillis() <= this.to.getTimeInMillis()
+              || this.to.getTimeInMillis() <= transaction.to.getTimeInMillis() && transaction.to.getTimeInMillis() <= this.to.getTimeInMillis())){
+         return true;
+      }
+
+      return false;
    }
 }
