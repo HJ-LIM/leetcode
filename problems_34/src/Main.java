@@ -25,7 +25,9 @@ public class Main {
 
 }
 
-class FileSystem extends Temp{
+class FileSystem{
+    Map<String , Integer> temp = new HashMap<>();
+
     public boolean createPath(String path , int value){
 
         StringBuilder sb = new StringBuilder();
@@ -54,8 +56,4 @@ class FileSystem extends Temp{
         return -1;
     }
 
-}
-
-abstract class Temp{
-    Map<String , Integer> temp = new HashMap<>();
 }
